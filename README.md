@@ -76,3 +76,39 @@ const response = await fetch('http://localhost:8000/api/v1/url', {
 const { id } = await response.json();
 console.log(`Short URL: http://localhost:8000/${id}`);
 ```
+
+## Contributing
+
+We welcome contributions! Please follow these rules:
+
+### Before Contributing
+- Fork the repository
+- Create a new branch for your feature/fix
+- Check existing issues and PRs to avoid duplicates
+
+### Code Standards
+- Use ES6+ syntax and modules
+- Follow existing code formatting
+- Add comments for complex logic
+- Keep functions small and focused
+
+### Pull Request Process
+1. Create a descriptive branch name (`feature/add-auth` or `fix/redirect-bug`)
+2. Make your changes with clear, concise commits
+3. Test your changes locally
+4. Update documentation if needed
+5. Submit PR with detailed description
+
+### Commit Guidelines
+- Use present tense ("Add feature" not "Added feature")
+- Keep commits focused on single changes
+- Reference issues when applicable (#123)
+
+### What to Contribute
+- Bug fixes
+- New features (discuss in issues first)
+- Documentation improvements
+- Performance optimizations
+- Test coverage
+
+Please be respectful and constructive in all interactions!
