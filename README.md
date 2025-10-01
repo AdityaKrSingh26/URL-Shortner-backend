@@ -52,8 +52,7 @@ Redirects to original URL
 
 2. **Create `.env` file**
    ```env
-   DB_USERNAME=your_mongodb_username
-   DB_PASSWORD=your_mongodb_password
+   MONGO_URI = your mongo uri
    PORT=8000
    ```
 

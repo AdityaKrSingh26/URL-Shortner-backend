@@ -3,12 +3,11 @@ import dotenv from "dotenv";
 dotenv.config();
 
 
-const DB_USERNAME = process.env.DB_USERNAME;
-const DB_PASSWORD = process.env.DB_PASSWORD;
+const MONGO_URI=process.env.MONGO_URI
 
 
 const connection = async () => {
-    const URL = `mongodb+srv://${DB_USERNAME}:${DB_PASSWORD}@cluster0.gpht2ol.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+    const URL = MONGO_URI;
 
     try {
         await mongoose.connect(URL);
