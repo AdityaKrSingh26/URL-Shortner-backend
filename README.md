@@ -85,6 +85,7 @@ We welcome contributions! Please follow these rules:
 - Fork the repository
 - Create a new branch for your feature/fix
 - Check existing issues and PRs to avoid duplicates
+- Raise your PR on DEV branch
 
 ### Code Standards
 - Use ES6+ syntax and modules
