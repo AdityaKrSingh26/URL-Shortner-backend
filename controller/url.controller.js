@@ -7,7 +7,20 @@ import { URL } from '../models/url.model.js';
 async function handleGenerateNewShortURL(req, res) {
     try {
         const body = req.body;
-        if (!body.url) return res.status(400).json({ error: "url is required" });
+        if (!body.url) return res.status(400).json({ error: 'url is required' });
+        const urlRegex = new RegExp(
+            '^(https?|ftp)://' +
+                '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' +
+                '((\\d{1,3}\\.){3}\\d{1,3}))' +
+                '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' +
+                '(\\?[;&a-z\\d%_.~+=-]*)?' +
+                '(\\#[-a-z\\d_]*)?$',
+            'i'
+        );
+
+        if (!urlRegex.test(body.url)) {
+            return res.status(400).json({ error: 'Invalid URL format' });
+        }
         const shortID = shortid();
 
         await URL.create({
