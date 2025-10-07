@@ -1,3 +1,39 @@
+## Bulk URL Processing (CSV Upload)
+
+Upload a CSV file to create short URLs in bulk. The CSV may contain either:
+- A single column of URLs with optional header `url`
+- Multiple columns where the first column is treated as the URL
+
+### Endpoints
+
+- POST `/api/v1/url/bulk/upload`
+  - Form-data: field `file` containing the CSV file
+  - Returns: `{ jobId, status }` with `202 Accepted`
+
+- GET `/api/v1/url/bulk/status/:jobId`
+  - Returns job progress and results:
+  - Example response:
+
+```json
+{
+  "id": "abc123",
+  "status": "completed",
+  "createdAt": 1710000000000,
+  "total": 3,
+  "processed": 3,
+  "succeeded": 3,
+  "failed": 0,
+  "results": [
+    { "url": "https://example.com", "id": "Q1wErT" }
+  ],
+  "errors": []
+}
+```
+
+### Notes
+- Max file size: 5 MB
+- Processing is in-memory and job status is ephemeral. For production, back job state with Redis or a database and consider rate limiting.
+- URLs without `http://` or `https://` will be stored as-is; redirection handler prefixes `http://` when redirecting.
 # URL Shortener Backend
 
 A simple URL shortening service built with Node.js, Express, and MongoDB.
@@ -52,8 +88,7 @@ Redirects to original URL
 
 2. **Create `.env` file**
    ```env
-   DB_USERNAME=your_mongodb_username
-   DB_PASSWORD=your_mongodb_password
+   MONGO_URI = your mongo uri
    PORT=8000
    ```
 
