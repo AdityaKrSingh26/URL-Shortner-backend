@@ -5,6 +5,7 @@ import {
     handleGetAnalytics,
     handleBulkUpload,
     handleBulkStatus,
+    handleGetQRCode,
 } from "../controller/url.controller.js";
 
 const router = express.Router();
@@ -14,5 +15,6 @@ router.post("/", handleGenerateNewShortURL);
 router.get("/analytics/:shortId", handleGetAnalytics);
 router.post("/bulk/upload", upload.single('file'), handleBulkUpload);
 router.get("/bulk/status/:jobId", handleBulkStatus);
+router.get("/qr/:shortId", handleGetQRCode);
 
 export default router;
