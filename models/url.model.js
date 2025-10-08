@@ -12,6 +12,13 @@ const urlSchema = new mongoose.Schema(
             required: true,
         },
         visitHistory: [{ timestamp: { type: Number } }],
+         metadata: {
+        title: String,
+        description: String,
+        favicon: String,
+        thumbnail: String,
+        originalURL: String
+    }
     },
     { timestamps: true }
 );
