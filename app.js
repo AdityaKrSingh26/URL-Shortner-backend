@@ -20,10 +20,23 @@ app.use("/api/v1/ip", ipRouter)
 app.get("/:shortId", async (req, res) => {
     try {
         const shortId = req.params.shortId;
-        const entry = await URL.findOneAndUpdate(
-            {
-                shortId,
-            },
+        const entry = await URL.findOne({ shortId });
+
+        if (!entry) {
+            return res.status(404).json({ error: "URL not found" });
+        }
+
+        // Check if URL has expired
+        if (entry.expirationDate && new Date() > new Date(entry.expirationDate)) {
+            return res.status(410).json({ 
+                error: "This URL has expired",
+                expirationDate: entry.expirationDate
+            });
+        }
+
+        // Update visit history
+        await URL.findOneAndUpdate(
+            { shortId },
             {
                 $push: {
                     visitHistory: {
@@ -33,16 +46,12 @@ app.get("/:shortId", async (req, res) => {
             }
         );
 
-        if (entry) {
-            let redirectURL = entry.redirectURL;
-            if (!redirectURL.startsWith("http://") && !redirectURL.startsWith("https://")) {
-                redirectURL = "http://" + redirectURL;
-            }
-            // console.log(entry);
-            res.redirect(redirectURL);
-        } else {
-            res.status(404).json({ error: "URL not found" });
+        let redirectURL = entry.redirectURL;
+        if (!redirectURL.startsWith("http://") && !redirectURL.startsWith("https://")) {
+            redirectURL = "http://" + redirectURL;
         }
+        // console.log(entry);
+        res.redirect(redirectURL);
     } catch (error) {
         console.log(error)
         res.status(500).json({ error: "Error in redirecting to orinal link" })

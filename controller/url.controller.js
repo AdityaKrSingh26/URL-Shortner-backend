@@ -23,14 +23,27 @@ async function handleGenerateNewShortURL(req, res) {
         if (!urlRegex.test(body.url)) {
             return res.status(400).json({ error: 'Invalid URL format' });
         }
+        
+        // Parse expiration date if provided (in days from now)
+        let expirationDate = null;
+        if (body.expiresInDays) {
+            const days = parseInt(body.expiresInDays);
+            if (isNaN(days) || days <= 0) {
+                return res.status(400).json({ error: 'expiresInDays must be a positive number' });
+            }
+            expirationDate = new Date();
+            expirationDate.setDate(expirationDate.getDate() + days);
+        }
+        
         const shortID = shortid();
 
         await URL.create({
             shortId: shortID,
             redirectURL: body.url,
             visitHistory: [],
+            expirationDate: expirationDate,
         });
-        return res.status(200).json({ id: shortID });
+        return res.status(200).json({ id: shortID, expirationDate });
     } catch (error) {
         console.log(error);
         res.status(500).json({ error: 'Error occurred in gentrating short url' });
@@ -41,9 +54,16 @@ async function handleGetAnalytics(req, res) {
     try {
         const shortId = req.params.shortId;
         const result = await URL.findOne({ shortId });
+        
+        if (!result) {
+            return res.status(404).json({ error: 'URL not found' });
+        }
+        
         return res.status(200).json({
             totalClicks: result.visitHistory.length,
             analytics: result.visitHistory,
+            expirationDate: result.expirationDate,
+            isExpired: result.expirationDate ? new Date() > new Date(result.expirationDate) : false,
         });
 
     } catch (error) {
@@ -52,9 +72,57 @@ async function handleGetAnalytics(req, res) {
     }
 }
 
+async function handleExtendExpiration(req, res) {
+    try {
+        const shortId = req.params.shortId;
+        const body = req.body;
+        
+        if (!body.additionalDays) {
+            return res.status(400).json({ error: 'additionalDays is required' });
+        }
+        
+        const additionalDays = parseInt(body.additionalDays);
+        if (isNaN(additionalDays) || additionalDays <= 0) {
+            return res.status(400).json({ error: 'additionalDays must be a positive number' });
+        }
+        
+        const entry = await URL.findOne({ shortId });
+        
+        if (!entry) {
+            return res.status(404).json({ error: 'URL not found' });
+        }
+        
+        let newExpirationDate;
+        if (entry.expirationDate) {
+            // Extend existing expiration date
+            newExpirationDate = new Date(entry.expirationDate);
+            newExpirationDate.setDate(newExpirationDate.getDate() + additionalDays);
+        } else {
+            // Set new expiration date from now
+            newExpirationDate = new Date();
+            newExpirationDate.setDate(newExpirationDate.getDate() + additionalDays);
+        }
+        
+        await URL.findOneAndUpdate(
+            { shortId },
+            { expirationDate: newExpirationDate }
+        );
+        
+        return res.status(200).json({
+            message: 'Expiration date extended successfully',
+            expirationDate: newExpirationDate
+        });
+        
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: 'Error extending expiration date' });
+    }
+}
+
 export {
     handleGenerateNewShortURL,
     handleGetAnalytics,
+    handleExtendExpiration,
     handleBulkUpload,
     handleBulkStatus,
 };
