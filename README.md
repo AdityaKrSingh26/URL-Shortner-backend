@@ -44,6 +44,8 @@ A simple URL shortening service built with Node.js, Express, and MongoDB.
 - Track click analytics
 - Get location info from URLs
 - Auto-redirect to original URLs
+- URL expiration functionality
+- Bulk URL processing via CSV upload
 
 ## Tech Stack
 
@@ -57,14 +59,27 @@ A simple URL shortening service built with Node.js, Express, and MongoDB.
 ### Create Short URL
 ```
 POST /api/v1/url
-Body: { "url": "https://example.com" }
-Response: { "id": "abc123" }
+Body: { "url": "https://example.com", "expiresInDays": 30 }
+Response: { "id": "abc123", "expirationDate": "2025-11-28T00:00:00.000Z" }
 ```
+- `expiresInDays` (optional): Number of days before the URL expires. If not provided, URL is permanent.
 
 ### Get Analytics
 ```
 GET /api/v1/url/analytics/:shortId
-Response: { "totalClicks": 5, "analytics": [...] }
+Response: { 
+  "totalClicks": 5, 
+  "analytics": [...],
+  "expirationDate": "2025-11-28T00:00:00.000Z",
+  "isExpired": false
+}
+```
+
+### Extend URL Expiration
+```
+PATCH /api/v1/url/expiration/:shortId
+Body: { "additionalDays": 30 }
+Response: { "message": "Expiration date extended successfully", "expirationDate": "..." }
 ```
 
 ### Get Location Info
@@ -76,7 +91,7 @@ Response: { "ipAddress": "...", "location": {...} }
 ### Redirect
 ```
 GET /:shortId
-Redirects to original URL
+Redirects to original URL (returns 410 if expired)
 ```
 
 ## Setup
@@ -102,14 +117,27 @@ Server runs on `http://localhost:8000`
 ## Usage Example
 
 ```javascript
-// Create short URL
+// Create short URL with expiration (30 days)
 const response = await fetch('http://localhost:8000/api/v1/url', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ url: 'https://example.com' })
+  body: JSON.stringify({ 
+    url: 'https://example.com',
+    expiresInDays: 30 
+  })
 });
-const { id } = await response.json();
+const { id, expirationDate } = await response.json();
 console.log(`Short URL: http://localhost:8000/${id}`);
+console.log(`Expires on: ${expirationDate}`);
+
+// Extend expiration
+const extendResponse = await fetch(`http://localhost:8000/api/v1/url/expiration/${id}`, {
+  method: 'PATCH',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ additionalDays: 30 })
+});
+const result = await extendResponse.json();
+console.log(result);
 ```
 
 ## Contributing
